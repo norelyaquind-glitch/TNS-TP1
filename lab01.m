@@ -247,7 +247,7 @@ title('Rectangular Pulse rect_5[n]');
 x = dtmf('5', 8000, 0.2);
 size(x)
 
-%% C.7 b) and c) - Normalise, play, waveform and spectrum (digit 5)
+%% C.5 b) and c) - Normalise, play, waveform and spectrum (digit 5)
 Fs = 8000;
 Td = 0.2;
 x = dtmf('5', Fs, Td);
