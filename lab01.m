@@ -105,3 +105,196 @@ size(I4)
 figure
 subplot(1,2,1); imshow(I);  title('Original')
 subplot(1,2,2); imshow(I4); title('Downsampled by 4')
+
+%% C.1 - Basic sinusoid
+A = 2;
+f0 = 5;
+phi = pi/3;
+Fs = 1000;
+Ts = 1/Fs;
+t = 0 : Ts : 1-Ts;            % exactly Fs samples for 1 second
+x = A*cos(2*pi*f0*t + phi);
+
+figure
+plot(t, x, 'b', 'LineWidth', 1.5)
+hold on
+xlabel('Time (s)');
+ylabel('Amplitude');
+title('Sinusoidal Signal x(t)');
+grid on
+
+yline(A,  '--r', 'LineWidth', 1.2)
+yline(-A, '--r', 'LineWidth', 1.2)
+
+x0 = A*cos(phi);              % value at t = 0
+plot(0, x0, 'ko', 'MarkerFaceColor', 'k', 'MarkerSize', 8);
+
+%% C.4 - Sum of harmonics: square-wave approximation
+Fs = 2000;
+t = 0:1/Fs:1;
+f0 = 2;
+K_values = [1, 3, 7, 21];
+
+% a) and b) loop over odd k, 2x2 subplot grid
+figure;
+for i = 1:length(K_values)
+    K = K_values(i);
+    s = zeros(size(t));
+    for k = 1:2:K
+        s = s + (4/pi) * (1/k) * sin(2*pi*k*f0*t);
+    end
+
+    subplot(2, 2, i);
+    plot(t, s, 'LineWidth', 1.2);
+    grid on;
+    xlabel('Time (s)');
+    ylabel('Amplitude');
+    title(['Approximation with K = ', num2str(K)]);
+end
+
+% c) Bonus: same computation without a loop (outer product)
+K = 21;
+k = (1:2:K)';                                   % column of odd harmonics
+s = sum((4./(pi*k)) .* sin(2*pi*f0*(k*t)), 1);  % one row per harmonic, sum over rows
+
+figure;
+plot(t, s, 'LineWidth', 1.2);
+grid on;
+xlabel('Time (s)');
+ylabel('Amplitude');
+title('Square wave, K = 21, without a loop');
+
+%% C.5 - Complex exponential
+Fs = 200;
+t = 0:1/Fs:1;
+f0 = 3;
+z = exp(1j*2*pi*f0*t);
+
+% a) real and imaginary parts
+figure;
+subplot(2, 1, 1);
+plot(t, real(z));
+grid on;
+xlabel('Time (s)');
+ylabel('Re(z)');
+title('Real Part');
+
+subplot(2, 1, 2);
+plot(t, imag(z));
+grid on;
+xlabel('Time (s)');
+ylabel('Im(z)');
+title('Imaginary Part');
+
+% b) trajectory in the complex plane (a circle)
+figure;
+plot(real(z), imag(z), 'LineWidth', 1.5);
+grid on;
+axis equal;
+xlabel('Re(z)');
+ylabel('Im(z)');
+title('Trajectory in the Complex Plane');
+
+% c) |z| is constant (about 0 means constant, equal to 1)
+spread = max(abs(z)) - min(abs(z))
+
+% d) cosine rebuilt from two complex exponentials
+xc = 0.5*(exp(1j*2*pi*f0*t) + exp(-1j*2*pi*f0*t));
+err = max(abs(xc - cos(2*pi*f0*t)))             % about 0: same cosine
+
+figure;
+plot(t, real(xc), 'LineWidth', 1.2);
+grid on;
+xlabel('Time (s)');
+ylabel('Amplitude');
+title('Cosine from two complex exponentials');
+
+%% C.6 - Elementary signals
+n = -10:10;
+
+% a) shifted Kronecker impulse delta[n-3]
+n0 = 3;
+delta = (n == n0);
+
+figure;
+subplot(3, 1, 1);
+stem(n, delta, 'filled');
+grid on;
+xlabel('n'); ylabel('Amplitude');
+title('Kronecker Impulse \delta[n - 3]');
+
+% b) unit step u[n-2]
+u = (n >= 2);
+
+subplot(3, 1, 2);
+stem(n, u, 'filled');
+grid on;
+xlabel('n'); ylabel('Amplitude');
+title('Unit Step u[n - 2]');
+
+% c) rectangular pulse of width N = 5 centred at n = 0
+N = 5;
+rect = (abs(n) <= (N-1)/2);
+
+subplot(3, 1, 3);
+stem(n, rect, 'filled');
+grid on;
+xlabel('n'); ylabel('Amplitude');
+title('Rectangular Pulse rect_5[n]');
+
+%% C.7 a) - DTMF function
+% dtmf(digit, Fs, Td) is in its own file dtmf.m (same folder as lab1.m).
+x = dtmf('5', 8000, 0.2);
+size(x)
+
+%% C.7 b) and c) - Normalise, play, waveform and spectrum (digit 5)
+Fs = 8000;
+Td = 0.2;
+x = dtmf('5', Fs, Td);
+x = 0.9 * x / max(abs(x));     % maximum absolute value = 0.9
+sound(x, Fs);
+
+figure;
+subplot(2, 1, 1);
+plot((0:length(x)-1)/Fs, x);
+grid on;
+xlabel('Time (s)');
+ylabel('Amplitude');
+title('DTMF Waveform (Digit 5)');
+
+subplot(2, 1, 2);
+X_fft = abs(fft(x));
+f_axis = (0:length(X_fft)-1) * (Fs / length(X_fft));
+plot(f_axis, X_fft);
+grid on;
+xlabel('Frequency (Hz)');
+ylabel('|X(f)|');
+title('Magnitude Spectrum (FFT)');
+xlim([0 2000]);                % two peaks: 770 Hz and 1336 Hz
+
+%% C.7 d) - Synthesise a phone number
+phoneNumber = '0123456789';    % <-- replace by your own number
+Fs = 8000;
+Td = 0.2;
+pauseDuration = 0.08;
+silence = zeros(1, round(Fs * pauseDuration));
+
+x_total = [];
+for i = 1:length(phoneNumber)
+    digit = phoneNumber(i);
+    x = dtmf(digit, Fs, Td);
+    x = 0.9 * x / max(abs(x));
+    x_total = [x_total, x, silence];
+end
+
+sound(x_total, Fs);
+audiowrite('full_phone_number.wav', x_total, Fs);
+
+% plot a part of the signal (the lab asks for it)
+figure;
+plot((0:length(x_total)-1)/Fs, x_total);
+grid on;
+xlabel('Time (s)');
+ylabel('Amplitude');
+title('DTMF signal of the phone number');
+xlim([0 1]);
