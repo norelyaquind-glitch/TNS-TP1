@@ -129,7 +129,7 @@ yline(-A, '--r', 'LineWidth', 1.2)
 x0 = A*cos(phi);              % value at t = 0
 plot(0, x0, 'ko', 'MarkerFaceColor', 'k', 'MarkerSize', 8);
 
-%% C.4 - Sum of harmonics: square-wave approximation
+%% C.2 - Sum of harmonics: square-wave approximation
 Fs = 2000;
 t = 0:1/Fs:1;
 f0 = 2;
@@ -164,7 +164,7 @@ xlabel('Time (s)');
 ylabel('Amplitude');
 title('Square wave, K = 21, without a loop');
 
-%% C.5 - Complex exponential
+%% C.3 - Complex exponential
 Fs = 200;
 t = 0:1/Fs:1;
 f0 = 3;
@@ -209,7 +209,7 @@ xlabel('Time (s)');
 ylabel('Amplitude');
 title('Cosine from two complex exponentials');
 
-%% C.6 - Elementary signals
+%% C.4 - Elementary signals
 n = -10:10;
 
 % a) shifted Kronecker impulse delta[n-3]
@@ -242,7 +242,7 @@ grid on;
 xlabel('n'); ylabel('Amplitude');
 title('Rectangular Pulse rect_5[n]');
 
-%% C.7 a) - DTMF function
+%% C.5 a) - DTMF function
 % dtmf(digit, Fs, Td) is in its own file dtmf.m (same folder as lab1.m).
 x = dtmf('5', 8000, 0.2);
 size(x)
@@ -272,7 +272,7 @@ ylabel('|X(f)|');
 title('Magnitude Spectrum (FFT)');
 xlim([0 2000]);                % two peaks: 770 Hz and 1336 Hz
 
-%% C.7 d) - Synthesise a phone number
+%% C.5 d) - Synthesise a phone number
 phoneNumber = '0123456789';    % <-- replace by your own number
 Fs = 8000;
 Td = 0.2;
